@@ -637,6 +637,8 @@ Chrome.prototype = {
         global.display.connect('restacked',
                               Lang.bind(this, this._windowsRestacked));
         global.display.connect('in-fullscreen-changed', Lang.bind(this, this._updateVisibility));
+        global.display.connect('notify::focus-window', Lang.bind(this, this._updateVisibility));
+        global.display.connect('window-monitor-changed', Lang.bind(this, this._updateVisibility));
         global.window_manager.connect('switch-workspace', Lang.bind(this, this._queueUpdateRegions));
 
         // Need to update struts on new workspaces when they are added
@@ -773,18 +775,17 @@ Chrome.prototype = {
     },
 
     _updateVisibility: function() {
-        for (let i = 0; i < this._trackedActors.length; i++) {
-            let actorData = this._trackedActors[i], visible;
+        this._trackedActors.forEach( actorData => {
+            const monitor = this.findMonitorForActor(actorData.actor);
+            let visible = false;
             if (!actorData.isToplevel)
-                continue;
+                return;
             else if (global.stage_input_mode == Cinnamon.StageInputMode.FULLSCREEN) {
-                let monitor = this.findMonitorForActor(actorData.actor);
-
                 if (global.display.get_n_monitors() == 1 || !monitor.inFullscreen) {
                     visible = true;
                 } else {
                     if (Main.modalActorFocusStack.length > 0) {
-                        let modalActor = Main.modalActorFocusStack[Main.modalActorFocusStack.length - 1].actor;
+                        const modalActor = Main.modalActorFocusStack[Main.modalActorFocusStack.length - 1].actor;
 
                         if (this.findMonitorForActor(modalActor) == monitor) {
                             visible = true;
@@ -794,15 +795,20 @@ Chrome.prototype = {
             } else if (this._inOverview)
                 visible = true;
             else {
-                let monitor = this.findMonitorForActor(actorData.actor);
-                
-                if (!actorData.visibleInFullscreen && monitor && monitor.inFullscreen)
+                const focusedWindow = global.display.get_focus_window();
+                if (!actorData.visibleInFullscreen && focusedWindow && focusedWindow.is_fullscreen()
+                    && focusedWindow.get_monitor() === monitor.index) {
                     visible = false;
-                else
+                } else if (!actorData.visibleInFullscreen && monitor.inFullscreen
+                    && focusedWindow && focusedWindow.get_monitor() != monitor.index) {
+                    visible = false;
+                } else {
                     visible = true;
+                }
             }
             Main.uiGroup.set_skip_paint(actorData.actor, !visible);
-        }
+        });
+
         this._queueUpdateRegions();
     },
 
