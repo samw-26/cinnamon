@@ -348,7 +348,7 @@ class ApplicationContextMenuItem extends PopupMenu.PopupBaseMenuItem {
     }
 
     activate (event) {
-        let closeMenu = true;
+        let closeMenu = false;
         switch (this._action) {
             case "add_to_panel":
                 if (!Main.AppletManager.get_role_provider_exists(Main.AppletManager.Roles.PANEL_LAUNCHER)) {
@@ -386,24 +386,25 @@ class ApplicationContextMenuItem extends PopupMenu.PopupBaseMenuItem {
                 this.label.set_text(_("Remove from favorites"));
                 this.icon.icon_name = "starred";
                 this._action = "remove_from_favorites";
-                closeMenu = false;
                 break;
             case "remove_from_favorites":
                 AppFavorites.getAppFavorites().removeFavorite(this._appButton.app.get_id());
                 this.label.set_text(_("Add to favorites"));
                 this.icon.icon_name = "non-starred";
                 this._action = "add_to_favorites";
-                closeMenu = false;
                 break;
             case "app_properties":
                 Util.spawnCommandLine("cinnamon-desktop-editor -mlauncher -o" + GLib.shell_quote(this._appButton.app.get_app_info().get_filename()));
+                closeMenu = true;
                 break;
             case "uninstall":
                 Util.spawnCommandLine("/usr/bin/cinnamon-remove-application '" + this._appButton.app.get_app_info().get_filename() + "'");
+                closeMenu = true;
                 break;
             case "offload_launch":
                 try {
                     this._appButton.app.launch_offloaded(0, [], -1);
+                    closeMenu = true;
                 } catch (e) {
                     logError(e, "Could not launch app with dedicated gpu: ");
                 }
@@ -414,10 +415,8 @@ class ApplicationContextMenuItem extends PopupMenu.PopupBaseMenuItem {
                     this._appButton.app.get_app_info().launch_action(action, global.create_app_launch_context());
                 } else return true;
         }
-        if (closeMenu) {
-            this._appButton.applet.toggleContextMenu(this._appButton);
-            this._appButton.applet.menu.close();
-        }
+        this._appButton.applet.toggleContextMenu(this._appButton);
+        if (closeMenu) this._appButton.applet.menu.close();
         return false;
     }
 
