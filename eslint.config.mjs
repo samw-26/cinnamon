@@ -11,7 +11,8 @@ export default defineConfig([
     rules: {
       'no-unused-vars': 'warn',
       semi: 'warn',
-      quotes: ['warn', 'single', { avoidEscape: true }]
+      quotes: ['warn', 'single', { avoidEscape: true }],
+      'max-len': ['warn', 120]
     },
     languageOptions: {
       globals: {

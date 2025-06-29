@@ -4,6 +4,7 @@
   "description": "",
   "main": "appGroup.js",
   "scripts": {
+    "create-branch": "sh -c 'set -e; git switch --no-track -c $1 upstream/master; git merge --no-commit --no-ff tools; git reset;' _",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
