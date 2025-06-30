@@ -1,14 +1,9 @@
 {
-  "name": "package",
-  "version": "1.0.0",
-  "description": "",
-  "main": "appGroup.js",
   "scripts": {
-    "create-branch": "sh -c 'set -e; git switch --no-track -c $1 upstream/master; git merge --no-commit --no-ff tools; git reset;' _",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "untrack-config": "cat config-files.txt | xargs git rm --cached; git commit -m 'Untracked config files'",
+    "track-config": "git reset --hard HEAD~1",
+    "create-branch": "sh -c 'set -e; git switch --no-track -c $1 upstream/master;' _"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.30.0",
     "eslint": "^9.30.0",
