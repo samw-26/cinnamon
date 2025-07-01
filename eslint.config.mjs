@@ -18,6 +18,7 @@ export default defineConfig([
       globals: {
         ...globals.browser,
         imports: 'readonly',
+        _: 'readonly'
       }
     }
   },
