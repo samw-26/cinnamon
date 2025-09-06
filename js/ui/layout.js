@@ -775,12 +775,6 @@ Chrome.prototype = {
     },
 
     _updateVisibility: function() {
-        const monitorsInFullscreen = [];
-        this._monitors.forEach( monitor => {
-            const topWindow = this._getTopWindowOnMonitor(monitor.index)
-            monitorsInFullscreen[monitor.index] = topWindow && topWindow.is_fullscreen();
-        });
-
         this._trackedActors.forEach( actorData => {
             const monitor = this.findMonitorForActor(actorData.actor);
             let visible = false;
@@ -801,7 +795,14 @@ Chrome.prototype = {
             } else if (this._inOverview)
                 visible = true;
             else {
-                if (actorData.visibleInFullscreen || !monitorsInFullscreen[monitor.index]) {
+                const focusedWindow = global.display.get_focus_window();
+                if (!actorData.visibleInFullscreen && focusedWindow && focusedWindow.is_fullscreen()
+                    && focusedWindow.get_monitor() === monitor.index) {
+                    visible = false;
+                } else if (!actorData.visibleInFullscreen && monitor.inFullscreen
+                    && focusedWindow && focusedWindow.get_monitor() != monitor.index) {
+                    visible = false;
+                } else {
                     visible = true;
                 }
             }
